@@ -11,5 +11,6 @@ return array(
 		'batch_id' => array('unsigned' => true),
 		'name',
 		'location',
+		'mime',
 	),
 );

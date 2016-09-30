@@ -4,6 +4,26 @@ function html( $text ) {
 	return htmlspecialchars((string)$text, ENT_QUOTES, 'UTF-8') ?: htmlspecialchars((string)$text, ENT_QUOTES, 'ISO-8859-1');
 }
 
+function handle_upload() {
+	global $batch;
+
+	if ( isset($_FILES['files']) ) {
+		$files = get_files();
+
+		if ( !$batch ) {
+			$batch = create_batch();
+		}
+
+		foreach ($files as $file) {
+			$batch_file = create_file($batch, $file);
+
+			move_uploaded_file($file['tmp_name'], ANONUPLOAD_FILES_DIR . '/' . $batch_file->location);
+		}
+
+		do_redirect('index.php?batch=' . urlencode($batch->secret));
+	}
+}
+
 function do_redirect( $uri = null ) {
 	$uri or $uri = get_url();
 	header("Location: " . $uri);
@@ -17,12 +37,23 @@ function do_mail( db_generic_record $batch, $recipients ) {
 	)));
 }
 
+function do_download( db_generic_record $file ) {
+	header('Content-type: ' . ($file->mime ?: 'application/octet-stream'));
+	header('Content-disposition: attachment; filename=' . urlencode($file->name));
+	readfile(ANONUPLOAD_FILES_DIR . '/' . $file->location);
+	exit;
+}
+
 function delete_file( db_generic_record $file ) {
+	global $db;
+
 	@unlink(ANONUPLOAD_FILES_DIR . '/' . $file->location);
 	$db->delete('files', array('id' => $file->id));
 }
 
 function delete_batch( db_generic_record $batch ) {
+	global $db;
+
 	foreach ( $batch->files as $file) {
 		delete_file($file);
 	}
@@ -54,6 +85,7 @@ function create_file( db_generic_record $batch, array $file ) {
 		'batch_id' => $batch->id,
 		'name' => basename($file['name']),
 		'location' => $secret . $ext,
+		'mime' => $file['type'],
 	);
 	$db->insert('files', $data);
 	$data['id'] = $db->insert_id();
@@ -73,7 +105,11 @@ function get_file( $secret = null ) {
 
 	$secret or $secret = @$_GET['file'];
 	if ( $secret ) {
-		return $db->select('files', array('location' => $secret))->first();
+		$file = $db->select('files', array('location' => $secret))->first();
+		if ( $file ) {
+			$file->batch = $db->select('batches', array('id' => $file->batch_id))->first();
+			return $file;
+		}
 	}
 }
 

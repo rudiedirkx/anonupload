@@ -1,8 +1,3 @@
-<?php
-
-require 'inc.upload.php';
-
-?>
 <!doctype html>
 <html>
 
@@ -13,7 +8,7 @@ require 'inc.upload.php';
 
 <body>
 
-<h2>Files in batch:</h2>
+<h2>Files in batch (<?= count($batch->files) ?>):</h2>
 
 <ul>
 	<? foreach ($batch->files as $file): ?>
