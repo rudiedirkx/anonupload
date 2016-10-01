@@ -12,6 +12,8 @@
 
 <?php include 'tpl.form.php'; ?>
 
+<?php include 'tpl.stats.php'; ?>
+
 </body>
 
 </html>
