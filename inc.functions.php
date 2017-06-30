@@ -4,6 +4,16 @@ function html( $text ) {
 	return htmlspecialchars((string)$text, ENT_QUOTES, 'UTF-8') ?: htmlspecialchars((string)$text, ENT_QUOTES, 'ISO-8859-1');
 }
 
+function set_message( $message ) {
+	$_SESSION['anonupload']['message'] = $message;
+}
+
+function get_message() {
+	$message = @$_SESSION['anonupload']['message'];
+	unset($_SESSION['anonupload']['message']);
+	return $message;
+}
+
 function handle_upload() {
 	global $batch;
 
@@ -20,6 +30,9 @@ function handle_upload() {
 			move_uploaded_file($file['tmp_name'], ANONUPLOAD_FILES_DIR . '/' . $batch_file->location);
 		}
 
+		$num = count($files);
+		set_message("$num files uploaded");
+
 		do_redirect('index.php?batch=' . urlencode($batch->secret));
 	}
 }
@@ -31,10 +44,13 @@ function do_redirect( $uri = null ) {
 }
 
 function do_mail( db_generic_record $batch, $recipients ) {
-	mail($recipients, 'Anonymous upload', "Batch URL:\n\n" . get_url(), implode("\r\n", array(
+	$success = mail($recipients, 'Anonymous upload', "Batch URL:\n\n" . get_url(), implode("\r\n", array(
 		"Content-type: text/plain; charset=utf-8",
 		"From: Anonymous upload <anonymous@example.com>"
 	)));
+	$success = $success ? 'Y' : 'N';
+
+	set_message("Mail sent to $recipients: $success");
 }
 
 function do_download( db_generic_record $file ) {
@@ -49,6 +65,8 @@ function delete_file( db_generic_record $file ) {
 
 	@unlink(ANONUPLOAD_FILES_DIR . '/' . $file->location);
 	$db->delete('files', array('id' => $file->id));
+
+	set_message("1 file deleted");
 }
 
 function delete_batch( db_generic_record $batch ) {
@@ -59,6 +77,8 @@ function delete_batch( db_generic_record $batch ) {
 	}
 
 	$db->delete('batches', array('id' => $batch->id));
+
+	set_message("Entire batch deleted");
 }
 
 function create_batch() {

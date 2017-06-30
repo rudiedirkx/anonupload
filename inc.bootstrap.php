@@ -12,3 +12,5 @@ $schema = require 'inc.db-schema.php';
 require 'inc.ensure-db-schema.php';
 
 require 'inc.functions.php';
+
+session_start();

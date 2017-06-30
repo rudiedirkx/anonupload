@@ -1,13 +1,4 @@
-<!doctype html>
-<html>
-
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta charset="utf-8" />
-<title>Anonymous upload</title>
-</head>
-
-<body>
+<?php include 'tpl.header.php'; ?>
 
 <h2>Files in batch (<?= count($batch->files) ?>):</h2>
 
