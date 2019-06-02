@@ -13,7 +13,7 @@
 	<div class="file"><input type="file" name="files[]" multiple /></div>
 	<div class="file"><input type="file" name="files[]" multiple /></div>
 
-	<p>Password: <input name="password" type="password" /></p>
+	<p>Password: <input required name="password" type="password" /></p>
 
 	<p><button>Upload</button></p>
 </form>
