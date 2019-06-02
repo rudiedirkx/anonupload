@@ -4,6 +4,15 @@ function html( $text ) {
 	return htmlspecialchars((string)$text, ENT_QUOTES, 'UTF-8') ?: htmlspecialchars((string)$text, ENT_QUOTES, 'ISO-8859-1');
 }
 
+function check_password() {
+	foreach ( ANONUPLOAD_PASSWORDS as $allowed ) {
+		if ( password_verify($_POST['password'] ?? '', $allowed) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function set_message( $message ) {
 	$_SESSION['anonupload']['message'] = $message;
 }
@@ -18,6 +27,11 @@ function handle_upload() {
 	global $batch;
 
 	if ( isset($_FILES['files']) ) {
+		if ( !check_password() ) {
+			set_message("Wrong password");
+			return do_redirect();
+		}
+
 		$files = get_files();
 
 		if ( !$batch ) {
@@ -32,7 +46,6 @@ function handle_upload() {
 
 		$num = count($files);
 		set_message("$num files uploaded");
-
 		do_redirect('index.php?batch=' . urlencode($batch->secret));
 	}
 }
